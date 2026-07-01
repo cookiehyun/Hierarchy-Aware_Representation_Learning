@@ -1,10 +1,8 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 from sklearn.manifold import TSNE
 from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.preprocessing import LabelEncoder
 from pathlib import Path
 import warnings
 warnings.filterwarnings("ignore")
@@ -12,28 +10,22 @@ warnings.filterwarnings("ignore")
 # ─────────────────────────────────────────────
 # 경로 설정
 # ─────────────────────────────────────────────
-BASE_DIR     = Path("/user/gaad2403/bachelor_thesis")
-EMBED_DIR    = BASE_DIR / "embeddings"
-OUTPUT_DIR   = Path("/user/gaad2403/Bachelor-Thesis/results/baseline_probing")
+BASE_DIR   = Path("/user/gaad2403/bachelor_thesis")
+EMBED_DIR  = BASE_DIR / "embeddings_esc50"
+META_PATH  = Path("/user/gaad2403/Bachelor-Thesis/data/esc50_bga_labels.csv")
+OUTPUT_DIR = Path("/user/gaad2403/Bachelor-Thesis/results/esc50_baseline_probing")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # ─────────────────────────────────────────────
 # 데이터 로드
 # ─────────────────────────────────────────────
 print("Loading embeddings...")
-embeddings = np.load(EMBED_DIR / "embeddings.npy")        # [93378, 4096]
-metadata   = pd.read_csv(EMBED_DIR / "embeddings_metadata.csv")
+embeddings = np.load(EMBED_DIR / "embeddings.npy")   # [2000, 4096]
+metadata   = pd.read_csv(META_PATH)                  # filename, fold, category, midcat, bga_label, ...
 
-print(f"Embeddings shape (raw): {embeddings.shape}")
-print(f"Metadata shape (raw):   {metadata.shape}")
-
-# unknown (종 라벨 없는 배경 소음) 제거
-metadata   = metadata[metadata["family"] != "unknown"].reset_index(drop=True)
-embeddings = embeddings[metadata.index]
-
-print(f"Embeddings shape (filtered): {embeddings.shape}")
-print(f"Metadata shape (filtered):   {metadata.shape}")
-print(f"\nFamily distribution:\n{metadata['family'].value_counts()}\n")
+print(f"Embeddings shape: {embeddings.shape}")
+print(f"Metadata shape:   {metadata.shape}")
+print(f"\nBGA distribution:\n{metadata['bga_label'].value_counts()}\n")
 
 # L2 정규화 (cosine similarity를 위해)
 norms      = np.linalg.norm(embeddings, axis=1, keepdims=True)
@@ -67,27 +59,28 @@ def plot_similarity_matrix(sim_matrix, labels, title, save_path):
     plt.close()
     print(f"Saved: {save_path}")
 
-family_means, family_classes = compute_class_means(embeddings, metadata["family"].tolist())
-family_sim = cosine_similarity(family_means)
+bga_means, bga_classes = compute_class_means(embeddings, metadata["bga_label"].tolist())
+bga_sim = cosine_similarity(bga_means)
 plot_similarity_matrix(
-    family_sim, family_classes,
-    "NatureLM Embeddings: Family-level Cosine Similarity",
-    OUTPUT_DIR / "similarity_family.png"
+    bga_sim, bga_classes,
+    "NatureLM Embeddings (ESC-50): BGA-level Cosine Similarity",
+    OUTPUT_DIR / "similarity_bga.png"
 )
 
-genus_means, genus_classes = compute_class_means(embeddings, metadata["genus"].tolist())
-genus_sim = cosine_similarity(genus_means)
+midcat_means, midcat_classes = compute_class_means(embeddings, metadata["midcat"].tolist())
+midcat_sim = cosine_similarity(midcat_means)
 plot_similarity_matrix(
-    genus_sim, genus_classes,
-    "NatureLM Embeddings: Genus-level Cosine Similarity",
-    OUTPUT_DIR / "similarity_genus.png"
+    midcat_sim, midcat_classes,
+    "NatureLM Embeddings (ESC-50): Mid-category-level Cosine Similarity",
+    OUTPUT_DIR / "similarity_midcat.png"
 )
 
 # ─────────────────────────────────────────────
 # 3. Intra- vs Inter-cluster similarity 분석
 # ─────────────────────────────────────────────
-def compute_intra_inter(embeddings, labels, level_name, n_sample=5000):
-    idx = np.random.choice(len(embeddings), min(n_sample, len(embeddings)), replace=False)
+def compute_intra_inter(embeddings, labels, level_name, n_sample=2000):
+    n_sample = min(n_sample, len(embeddings))
+    idx   = np.random.choice(len(embeddings), n_sample, replace=False)
     emb_s = embeddings[idx]
     lab_s = [labels[i] for i in idx]
 
@@ -112,15 +105,16 @@ def compute_intra_inter(embeddings, labels, level_name, n_sample=5000):
     return intra, inter
 
 np.random.seed(42)
-intra_family, inter_family = compute_intra_inter(embeddings, metadata["family"].tolist(), "Family")
-intra_genus,  inter_genus  = compute_intra_inter(embeddings, metadata["genus"].tolist(),  "Genus")
-intra_species,inter_species= compute_intra_inter(embeddings, metadata["species"].tolist(),"Species")
+# 전체가 2000개뿐이라 n_sample은 전부 사용 (AnuraSet은 93k라 5000개 샘플링했었음)
+intra_bga,    inter_bga    = compute_intra_inter(embeddings, metadata["bga_label"].tolist(), "BGA")
+intra_midcat, inter_midcat = compute_intra_inter(embeddings, metadata["midcat"].tolist(),    "Midcat")
+intra_cat,    inter_cat    = compute_intra_inter(embeddings, metadata["category"].tolist(),  "Category")
 
 fig, axes = plt.subplots(1, 3, figsize=(14, 5))
 levels = [
-    ("Family",  intra_family,  inter_family),
-    ("Genus",   intra_genus,   inter_genus),
-    ("Species", intra_species, inter_species),
+    ("BGA",      intra_bga,    inter_bga),
+    ("Midcat",   intra_midcat, inter_midcat),
+    ("Category", intra_cat,    inter_cat),
 ]
 for ax, (name, intra, inter) in zip(axes, levels):
     ax.boxplot([intra, inter], labels=["Intra", "Inter"], patch_artist=True,
@@ -130,7 +124,7 @@ for ax, (name, intra, inter) in zip(axes, levels):
     ax.set_ylim(-0.1, 1.0)
     ax.axhline(0, color="red", linestyle="--", linewidth=0.8)
 
-fig.suptitle("NatureLM Embeddings: Intra- vs Inter-class Cosine Similarity", fontsize=13)
+fig.suptitle("NatureLM Embeddings (ESC-50): Intra- vs Inter-class Cosine Similarity", fontsize=13)
 plt.tight_layout()
 plt.savefig(OUTPUT_DIR / "intra_inter_similarity.png", dpi=150, bbox_inches="tight")
 plt.close()
@@ -139,23 +133,21 @@ print(f"\nSaved: {OUTPUT_DIR}/intra_inter_similarity.png")
 # ─────────────────────────────────────────────
 # 4. t-SNE 시각화
 # ─────────────────────────────────────────────
-print("\nRunning t-SNE (this may take a few minutes)...")
+print("\nRunning t-SNE...")
 
-N_TSNE = 5000
-idx    = np.random.choice(len(embeddings), N_TSNE, replace=False)
+# AnuraSet은 93k 중 5000개만 샘플링했지만, ESC-50은 전체가 2000개라 다 사용
+N_TSNE = len(embeddings)
+idx    = np.arange(N_TSNE)
 emb_s  = embeddings[idx]
 meta_s = metadata.iloc[idx].reset_index(drop=True)
 
 tsne   = TSNE(n_components=2, perplexity=30, random_state=42, max_iter=1000)
 emb_2d = tsne.fit_transform(emb_s)
 
-FAMILY_COLORS = {
-    "Hylidae":         "#2196F3",
-    "Leptodactylidae": "#F44336",
-    "Bufonidae":       "#4CAF50",
-    "Phyllomedusidae": "#FF9800",
-    "Microhylidae":    "#9C27B0",
-    "Dendrobatidae":   "#00BCD4",
+BGA_COLORS = {
+    "biophony":    "#4CAF50",
+    "geophony":    "#2196F3",
+    "anthrophony": "#F44336",
 }
 
 def plot_tsne(emb_2d, labels, color_map, title, save_path):
@@ -175,19 +167,20 @@ def plot_tsne(emb_2d, labels, color_map, title, save_path):
     print(f"Saved: {save_path}")
 
 plot_tsne(
-    emb_2d, meta_s["family"].tolist(), FAMILY_COLORS,
-    f"NatureLM Embeddings t-SNE (n={N_TSNE}) — Family Level",
-    OUTPUT_DIR / "tsne_family.png"
+    emb_2d, meta_s["bga_label"].tolist(), BGA_COLORS,
+    f"NatureLM Embeddings t-SNE (ESC-50, n={N_TSNE}) — BGA Level",
+    OUTPUT_DIR / "tsne_bga.png"
 )
 
-genera = sorted(meta_s["genus"].unique())
-cmap   = plt.cm.get_cmap("tab20", len(genera))
-GENUS_COLORS = {g: cmap(i) for i, g in enumerate(genera)}
+midcats = sorted(meta_s["midcat"].unique())
+import matplotlib as mpl
+base_colors = mpl.colormaps["tab20"].colors  # 20개 고정 색상 리스트, 버전 무관
+MIDCAT_COLORS = {m: base_colors[i % 20] for i, m in enumerate(midcats)}
 plot_tsne(
-    emb_2d, meta_s["genus"].tolist(), GENUS_COLORS,
-    f"NatureLM Embeddings t-SNE (n={N_TSNE}) — Genus Level",
-    OUTPUT_DIR / "tsne_genus.png"
+    emb_2d, meta_s["midcat"].tolist(), MIDCAT_COLORS,
+    f"NatureLM Embeddings t-SNE (ESC-50, n={N_TSNE}) — Mid-category Level",
+    OUTPUT_DIR / "tsne_midcat.png"
 )
 
-print("\n=== Baseline Probing Complete ===")
+print("\n=== ESC-50 Baseline Probing Complete ===")
 print(f"All results saved to: {OUTPUT_DIR}")

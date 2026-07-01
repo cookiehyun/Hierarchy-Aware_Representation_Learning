@@ -28,3 +28,6 @@ slurm-*.out
 # Cache
 .cache/
 huggingface/
+
+*.csv
+!data/*.csv
