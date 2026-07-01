@@ -25,8 +25,8 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import normalized_mutual_info_score
 from pathlib import Path
 
-from esc50.esc50_dataset import ESC50EmbeddingDataset
-from esc50.esc50_hierarchy_tree import ESC50HierarchyTree
+from birdnet.esc50.esc50_dataset import ESC50EmbeddingDataset
+from birdnet.esc50.esc50_hierarchy_tree import ESC50HierarchyTree
 from models.projection_head import ProjectionHead
 from models.hierarchical_model import HierarchicalModel
 
@@ -231,15 +231,20 @@ for name in embeddings_train.keys():
           f"{row[3]:9.4f} {row[4]:8.2f}% {row[5]:8.2f}% | "
           f"{row[6]:9.4f} {row[7]:8.2f}% {row[8]:8.2f}%")
 
-# ── Bar chart (gap + probe acc 둘 다) ───────────────────────────────────────
+# ── Bar chart (gap + probe acc + NMI 세 개 모두) ────────────────────────────
 print("\n[5/5] Creating visualizations...")
 levels = ['BGA', 'Midcat', 'Category']
 colors = {'Baseline': '#4C72B0', 'UALB': '#DD8452', 'FTM-only': '#937860',
          'TT-only': '#8C8C8C', 'FTM+TT': '#55A868'}
 
-fig, axes = plt.subplots(1, 2, figsize=(16, 6))
-for ax, (metric_name, metric_dict) in zip(axes, [('Cosine Gap', {n: {l: gap_results[n][l][2] for l in levels} for n in gap_results}),
-                                                    ('Linear Probe Acc (%)', probe_results)]):
+metric_panels = [
+    ('Cosine Gap', {n: {l: gap_results[n][l][2] for l in levels} for n in gap_results}),
+    ('Linear Probe Acc (%)', probe_results),
+    ('Clustering NMI (%)', nmi_results),
+]
+
+fig, axes = plt.subplots(1, 3, figsize=(22, 6))
+for ax, (metric_name, metric_dict) in zip(axes, metric_panels):
     x = np.arange(len(levels))
     n_bars = len(metric_dict)
     w = 0.8 / n_bars
