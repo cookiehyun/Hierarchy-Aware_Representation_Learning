@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+
+# Virtual environments
+naturelm-env/
+venv/
+.env/
+
+# Data and models
+anuraset/
+*.zip
+*.wav
+*.pt
+*.pth
+*.npy
+*.npz
+*.safetensors
+*.bin
+
+# Logs
+logs/
+*.log
+*.err
+slurm-*.out
+
+# Cache
+.cache/
+huggingface/
+
+*.csv
+!data/*.csv

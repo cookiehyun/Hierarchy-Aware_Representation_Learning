@@ -47,6 +47,9 @@ python scripts/NatureLM/anuraset/tree_triplet/eval_tree_triplet_abalation.py
 python scripts/NatureLM/anuraset/linear_probe_nmi_eval.py
 ```
 
+Example ablation result (ESC-50, BirdNET embeddings):
+
+![Ablation comparison](results/birdnet/esc50/esc50_wp3_ablation_comparison/ablation_comparison.png)
 
 ## Repository Structure
 ```
