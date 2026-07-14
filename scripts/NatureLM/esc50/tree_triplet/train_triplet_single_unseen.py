@@ -1,12 +1,10 @@
 """
-WP3 Training - Method 2: HSSN (ESC-50, faithful reproduction)
-
-기존 train_triplet_loss.py(ESC-50)에서 HMLC를 완전히 제거하고,
-AnuraSet의 train_hssn_singlelabel.py와 동일하게 L_FTM + beta(t)*L_TT로 학습.
+WP3 Training - Method 2: HSSN, ESC-50, NatureLM, UNSEEN-CATEGORY hold-out variant.
 """
 
 import sys
 import math
+import json
 sys.path.append("/fs/dss/home/gaad2403/Bachelor-Thesis/src")
 
 import torch
@@ -14,17 +12,18 @@ import numpy as np
 from pathlib import Path
 from torch.utils.data import DataLoader, random_split
 
-from esc50.esc50_dataset import ESC50EmbeddingDataset
-from esc50.hierarchy_utils import ESC50Hierarchy
-from esc50.esc50_hierarchy_tree import ESC50HierarchyTree
+from NatureLM.esc50.esc50_dataset_unseen import ESC50EmbeddingDataset  # 🆕
+from NatureLM.esc50.hierarchy_utils import ESC50Hierarchy
+from NatureLM.esc50.esc50_hierarchy_tree import ESC50HierarchyTree
 from models.hierarchical_model import HierarchicalModel
-from tree_triplet_loss import TreeTripletLoss
+from tree_triplet_loss_self import TreeTripletLoss
 from focal_tree_min_loss import FocalTreeMinLoss
 
 # ── Paths ──────────────────────────────────────────────────────────────────
 EMBED_PATH = '/user/gaad2403/bachelor_thesis/embeddings_esc50/embeddings.npy'
 META_PATH  = '/user/gaad2403/Bachelor-Thesis/data/esc50_bga_labels.csv'
-SAVE_DIR   = Path('/user/gaad2403/Bachelor-Thesis/results/esc50_wp3_hssn')
+SPLIT_PATH = '/user/gaad2403/Bachelor-Thesis/data/unseen_category_split.json'  # 🆕
+SAVE_DIR   = Path('/user/gaad2403/Bachelor-Thesis/results/NatureLM/esc50/esc50_wp3_hssn_self_unseen')
 SAVE_DIR.mkdir(parents=True, exist_ok=True)
 
 TRAIN_FOLDS = [1, 2, 3, 4]
@@ -45,13 +44,20 @@ USE_HIERARCHY_MARGIN    = True
 MAX_TRIPLETS_PER_CLASS  = 200
 FTM_GAMMA               = 2.0
 
+
 def beta_schedule(epoch, total_epochs):
     return 0.25 * (1 - math.cos(math.pi * epoch / total_epochs))
 
+
 print(f"Device: {DEVICE}")
 
-# ── Dataset ────────────────────────────────────────────────────────────────
-full_train_ds = ESC50EmbeddingDataset(EMBED_PATH, META_PATH, folds=TRAIN_FOLDS)
+with open(SPLIT_PATH) as f:
+    split = json.load(f)
+exclude_categories = split['all_held_out_categories']
+print(f"Excluding {len(exclude_categories)} held-out categories from training: {exclude_categories}")
+
+full_train_ds = ESC50EmbeddingDataset(EMBED_PATH, META_PATH, folds=TRAIN_FOLDS,
+                                      exclude_categories=exclude_categories)  # 🆕
 
 val_size   = int(len(full_train_ds) * VAL_SPLIT)
 train_size = len(full_train_ds) - val_size
@@ -65,13 +71,12 @@ val_loader   = DataLoader(val_ds, batch_size=BATCH_SIZE, shuffle=False,
 
 print(f"Train: {len(train_ds)} | Val: {len(val_ds)}")
 
-# ── Hierarchy ──────────────────────────────────────────────────────────────
 ps_hierarchy = ESC50Hierarchy(META_PATH)
 tree = ESC50HierarchyTree(META_PATH, full_train_ds.bga_enc,
                           full_train_ds.midcat_enc, full_train_ds.category_enc)
 print(f"[HierarchyTree] n_nodes = {tree.n_nodes}")
 
-# ── Model & Losses ─────────────────────────────────────────────────────────
+# ── Model & Losses (input_dim=4096 for NatureLM) ───────────────────────────
 model = HierarchicalModel(input_dim=4096, hidden_dim=1024,
                           triplet_dim=TRIPLET_DIM, n_hierarchy_nodes=tree.n_nodes).to(DEVICE)
 
@@ -88,7 +93,6 @@ ftm_loss_fn = FocalTreeMinLoss(
 optimizer = torch.optim.SGD(model.parameters(), lr=LR, momentum=0.9, weight_decay=WEIGHT_DECAY)
 scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=EPOCHS)
 
-# ── Training loop ──────────────────────────────────────────────────────────
 best_val_loss = float('inf')
 history = {'train_ftm_loss': [], 'train_triplet_loss': [], 'train_total_loss': [],
            'val_ftm_loss': [], 'beta': []}
@@ -101,7 +105,7 @@ for epoch in range(1, EPOCHS + 1):
 
     for batch_idx, (emb, hier_labels) in enumerate(train_loader):
         emb         = emb.to(DEVICE)
-        hier_labels = hier_labels.to(DEVICE)   # [bsz,3] -> [bga, midcat, category]
+        hier_labels = hier_labels.to(DEVICE)
 
         z, s = model(emb)
 

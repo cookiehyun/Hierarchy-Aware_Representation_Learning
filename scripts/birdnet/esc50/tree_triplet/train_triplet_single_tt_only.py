@@ -13,16 +13,16 @@ import numpy as np
 from pathlib import Path
 from torch.utils.data import DataLoader, random_split
 
-from esc50.esc50_dataset import ESC50EmbeddingDataset
-from esc50.hierarchy_utils import ESC50Hierarchy
-from esc50.esc50_hierarchy_tree import ESC50HierarchyTree
+from birdnet.esc50.esc50_dataset import ESC50EmbeddingDataset
+from birdnet.esc50.hierarchy_utils import ESC50Hierarchy
+from birdnet.esc50.esc50_hierarchy_tree import ESC50HierarchyTree
 from models.hierarchical_model import HierarchicalModel
-from tree_triplet_loss import TreeTripletLoss
+from tree_triplet_loss_self import TreeTripletLoss
 
 # ── Paths ──────────────────────────────────────────────────────────────────
 EMBED_PATH = '/user/gaad2403/bachelor_thesis/embeddings_esc50_birdnet/embeddings.npy'
 META_PATH  = '/user/gaad2403/Bachelor-Thesis/data/esc50_bga_labels.csv'
-SAVE_DIR   = Path('/user/gaad2403/Bachelor-Thesis/results/birdnet/esc50/esc50_wp3_tt_only')
+SAVE_DIR   = Path('/user/gaad2403/Bachelor-Thesis/results/birdnet/esc50/esc50_wp3_tt_only_self')
 SAVE_DIR.mkdir(parents=True, exist_ok=True)
 
 TRAIN_FOLDS = [1, 2, 3, 4]

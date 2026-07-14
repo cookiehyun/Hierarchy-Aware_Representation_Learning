@@ -24,6 +24,7 @@ logs/
 *.log
 *.err
 slurm-*.out
+.sh
 
 # Cache
 .cache/

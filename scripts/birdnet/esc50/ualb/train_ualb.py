@@ -15,14 +15,14 @@ from torch.utils.data import DataLoader, random_split
 import numpy as np
 from pathlib import Path
 
-from esc50.esc50_dataset import ESC50EmbeddingDataset
+from birdnet.esc50.esc50_dataset import ESC50EmbeddingDataset
 from models.projection_head import ProjectionHead
-from hmlc_loss import HMLC
+from hmlc_loss_l0 import HMLCWithSpeciesLevel as HMLC
 
 # ── Paths ──────────────────────────────────────────────────────────────────
 EMBED_PATH = '/user/gaad2403/bachelor_thesis/embeddings_esc50_birdnet/embeddings.npy'
 META_PATH  = '/user/gaad2403/Bachelor-Thesis/data/esc50_bga_labels.csv'
-SAVE_DIR   = Path('/user/gaad2403/Bachelor-Thesis/results/birdnet/esc50/esc50_wp3_ualb')
+SAVE_DIR   = Path('/user/gaad2403/Bachelor-Thesis/results/birdnet/esc50/esc50_wp3_ualb_l0')
 SAVE_DIR.mkdir(parents=True, exist_ok=True)
 
 TRAIN_FOLDS = [1, 2, 3, 4]   # fold 5는 test용 (eval에서만 사용)

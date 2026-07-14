@@ -13,8 +13,8 @@ import numpy as np
 from pathlib import Path
 from torch.utils.data import DataLoader, random_split
 
-from esc50.esc50_dataset import ESC50EmbeddingDataset
-from esc50.esc50_hierarchy_tree import ESC50HierarchyTree
+from birdnet.esc50.esc50_dataset import ESC50EmbeddingDataset
+from birdnet.esc50.esc50_hierarchy_tree import ESC50HierarchyTree
 from models.hierarchical_model import HierarchicalModel
 from focal_tree_min_loss import FocalTreeMinLoss
 

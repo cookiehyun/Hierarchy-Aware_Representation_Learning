@@ -1,0 +1,101 @@
+{
+  "near_ood_pairs": [
+    {
+      "genus": "Adenomera",
+      "species": "diptyx",
+      "code": "ADEDIP"
+    },
+    {
+      "genus": "Boana",
+      "species": "albopunctata",
+      "code": "BOAALB"
+    },
+    {
+      "genus": "Dendropsophus",
+      "species": "minutus",
+      "code": "DENMIN"
+    },
+    {
+      "genus": "Leptodactylus",
+      "species": "fuscus",
+      "code": "LEPFUS"
+    },
+    {
+      "genus": "Phyllomedusa",
+      "species": "distincta",
+      "code": "PHYDIS"
+    },
+    {
+      "genus": "Physalaemus",
+      "species": "albonotatus",
+      "code": "PHYALB"
+    },
+    {
+      "genus": "Scinax",
+      "species": "alter",
+      "code": "SCIALT"
+    }
+  ],
+  "far_ood_genus": [
+    "Pithecopus"
+  ],
+  "far_ood_pairs": [
+    {
+      "genus": "Pithecopus",
+      "species": "azureus",
+      "code": "PITAZU"
+    }
+  ],
+  "all_held_out_pairs": [
+    {
+      "genus": "Adenomera",
+      "species": "diptyx",
+      "code": "ADEDIP"
+    },
+    {
+      "genus": "Boana",
+      "species": "albopunctata",
+      "code": "BOAALB"
+    },
+    {
+      "genus": "Dendropsophus",
+      "species": "minutus",
+      "code": "DENMIN"
+    },
+    {
+      "genus": "Leptodactylus",
+      "species": "fuscus",
+      "code": "LEPFUS"
+    },
+    {
+      "genus": "Phyllomedusa",
+      "species": "distincta",
+      "code": "PHYDIS"
+    },
+    {
+      "genus": "Physalaemus",
+      "species": "albonotatus",
+      "code": "PHYALB"
+    },
+    {
+      "genus": "Scinax",
+      "species": "alter",
+      "code": "SCIALT"
+    },
+    {
+      "genus": "Pithecopus",
+      "species": "azureus",
+      "code": "PITAZU"
+    }
+  ],
+  "all_held_out_codes": [
+    "ADEDIP",
+    "BOAALB",
+    "DENMIN",
+    "LEPFUS",
+    "PHYALB",
+    "PHYDIS",
+    "PITAZU",
+    "SCIALT"
+  ]
+}

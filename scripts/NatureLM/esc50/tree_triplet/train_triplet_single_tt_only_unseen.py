@@ -1,11 +1,9 @@
 """
-WP3 Ablation - Tree-Triplet only (ESC-50, FTM 없이)
-
-AnuraSet의 train_tt_only_singlelabel.py와 동일 구조.
-total_loss = L_TT
+WP3 Ablation - Tree-Triplet only, ESC-50, NatureLM, UNSEEN-CATEGORY hold-out variant.
 """
 
 import sys
+import json
 sys.path.append("/fs/dss/home/gaad2403/Bachelor-Thesis/src")
 
 import torch
@@ -13,16 +11,17 @@ import numpy as np
 from pathlib import Path
 from torch.utils.data import DataLoader, random_split
 
-from esc50.esc50_dataset import ESC50EmbeddingDataset
-from esc50.hierarchy_utils import ESC50Hierarchy
-from esc50.esc50_hierarchy_tree import ESC50HierarchyTree
+from NatureLM.esc50.esc50_dataset_unseen import ESC50EmbeddingDataset  # 🆕
+from NatureLM.esc50.hierarchy_utils import ESC50Hierarchy
+from NatureLM.esc50.esc50_hierarchy_tree import ESC50HierarchyTree
 from models.hierarchical_model import HierarchicalModel
-from tree_triplet_loss import TreeTripletLoss
+from tree_triplet_loss_self import TreeTripletLoss
 
 # ── Paths ──────────────────────────────────────────────────────────────────
 EMBED_PATH = '/user/gaad2403/bachelor_thesis/embeddings_esc50/embeddings.npy'
 META_PATH  = '/user/gaad2403/Bachelor-Thesis/data/esc50_bga_labels.csv'
-SAVE_DIR   = Path('/user/gaad2403/Bachelor-Thesis/results/esc50_wp3_tt_only')
+SPLIT_PATH = '/user/gaad2403/Bachelor-Thesis/data/unseen_category_split.json'  # 🆕
+SAVE_DIR   = Path('/user/gaad2403/Bachelor-Thesis/results/NatureLM/esc50/esc50_wp3_tt_only_self_unseen')
 SAVE_DIR.mkdir(parents=True, exist_ok=True)
 
 TRAIN_FOLDS = [1, 2, 3, 4]
@@ -38,17 +37,22 @@ VAL_SPLIT    = 0.1
 DEVICE       = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 TRIPLET_MARGIN_EPSILON = 0.1
-MAX_HIERARCHY_DEPTH    = 3      # BGA->Midcat->Category, AnuraSet과 동일하게 D=3 유지 (ψ는 edge-distance로 수정됨)
+MAX_HIERARCHY_DEPTH    = 3
 USE_HIERARCHY_MARGIN    = True
 MAX_TRIPLETS_PER_CLASS  = 200
 
 print(f"Device: {DEVICE}")
 print("=" * 60)
-print("Ablation: Tree-Triplet only (ESC-50, no FTM)")
+print("Ablation: Tree-Triplet only (ESC-50, NatureLM), UNSEEN-CATEGORY hold-out")
 print("=" * 60)
 
-# ── Dataset ────────────────────────────────────────────────────────────────
-full_train_ds = ESC50EmbeddingDataset(EMBED_PATH, META_PATH, folds=TRAIN_FOLDS)
+with open(SPLIT_PATH) as f:
+    split = json.load(f)
+exclude_categories = split['all_held_out_categories']
+print(f"Excluding {len(exclude_categories)} held-out categories from training: {exclude_categories}")
+
+full_train_ds = ESC50EmbeddingDataset(EMBED_PATH, META_PATH, folds=TRAIN_FOLDS,
+                                      exclude_categories=exclude_categories)  # 🆕
 
 val_size   = int(len(full_train_ds) * VAL_SPLIT)
 train_size = len(full_train_ds) - val_size
@@ -62,12 +66,11 @@ val_loader   = DataLoader(val_ds, batch_size=BATCH_SIZE, shuffle=False,
 
 print(f"Train: {len(train_ds)} | Val: {len(val_ds)}")
 
-# ── Hierarchy ──────────────────────────────────────────────────────────────
-ps_hierarchy = ESC50Hierarchy(META_PATH)   # ψ(edge-distance), 수정된 버전
+ps_hierarchy = ESC50Hierarchy(META_PATH)
 tree = ESC50HierarchyTree(META_PATH, full_train_ds.bga_enc,
                           full_train_ds.midcat_enc, full_train_ds.category_enc)
 
-# ── Model & Loss ───────────────────────────────────────────────────────────
+# ── Model & Loss (input_dim=4096 for NatureLM) ─────────────────────────────
 model = HierarchicalModel(input_dim=4096, hidden_dim=1024,
                           triplet_dim=TRIPLET_DIM, n_hierarchy_nodes=tree.n_nodes).to(DEVICE)
 
@@ -81,7 +84,6 @@ triplet_loss_fn = TreeTripletLoss(
 optimizer = torch.optim.SGD(model.parameters(), lr=LR, momentum=0.9, weight_decay=WEIGHT_DECAY)
 scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=EPOCHS)
 
-# ── Training loop ──────────────────────────────────────────────────────────
 best_val_loss = float('inf')
 history = {'train_triplet_loss': [], 'val_triplet_loss': []}
 

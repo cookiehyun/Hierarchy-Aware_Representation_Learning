@@ -1,0 +1,18 @@
+#!/bin/bash
+#SBATCH --job-name=total_esc
+#SBATCH --partition=mpcg.p
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=4
+#SBATCH --gres=gpu:1
+#SBATCH --mem=32G
+#SBATCH --time=08:00:00
+#SBATCH --output=/user/gaad2403/Bachelor-Thesis/logs/total_birdnet_esc_hf1_unseen%j.log
+#SBATCH --error=/user/gaad2403/Bachelor-Thesis/logs/total_birdnet_esc_hf1_unseen%j.err
+
+module load hpc-env/13.1 Python/3.11.3-GCCcore-13.1.0
+
+source /fs/dss/home/gaad2403/bachelor_thesis/naturelm-env/bin/activate
+
+cd /user/gaad2403/Bachelor-Thesis
+python scripts/birdnet/esc50/evaluation_unseen.py

@@ -1,0 +1,36 @@
+{
+  "near_ood_categories": [
+    "chainsaw",
+    "chirping_birds",
+    "coughing",
+    "cow",
+    "crickets",
+    "door_wood_knock",
+    "pouring_water",
+    "siren",
+    "thunderstorm",
+    "train"
+  ],
+  "far_ood_midcats": [
+    "amphibian",
+    "fire"
+  ],
+  "far_ood_categories": [
+    "crackling_fire",
+    "frog"
+  ],
+  "all_held_out_categories": [
+    "chainsaw",
+    "chirping_birds",
+    "coughing",
+    "cow",
+    "crackling_fire",
+    "crickets",
+    "door_wood_knock",
+    "frog",
+    "pouring_water",
+    "siren",
+    "thunderstorm",
+    "train"
+  ]
+}
