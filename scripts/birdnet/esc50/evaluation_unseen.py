@@ -101,6 +101,22 @@ def extract_hierarchical_scores(ds, model_path, n_hierarchy_nodes):
     return np.vstack(out)
 
 
+def extract_hidden(ds, model_path, n_hierarchy_nodes):
+    """🆕 FTM-only's shared backbone representation h -- see birdnet_wp3_full_eval_normal_hf1.py."""
+    model = HierarchicalModel(input_dim=1024, hidden_dim=1024, triplet_dim=128,
+                               n_hierarchy_nodes=n_hierarchy_nodes).to(DEVICE)
+    ckpt = torch.load(model_path, map_location=DEVICE)
+    model.load_state_dict(ckpt['model_state_dict'])
+    model.eval()
+    out = []
+    with torch.no_grad():
+        for i in range(0, len(ds), 512):
+            h = model.encode_hidden(ds.embeddings[i:i + 512].to(DEVICE))
+            out.append(h.cpu().numpy())
+    emb = np.vstack(out)
+    return emb / np.clip(np.linalg.norm(emb, axis=1, keepdims=True), 1e-8, None)
+
+
 def anomaly_score_from_ftm(scores, cat_node_start, cat_node_end):
     cat_scores = scores[:, cat_node_start:cat_node_end]
     return 1.0 - cat_scores.max(axis=1)
@@ -283,8 +299,11 @@ def main():
             if name == 'FTM-only':
                 cat_scores = test_scores[held_in_mask, cat_node_start:cat_node_end]
                 acc = (cat_scores.argmax(axis=1) == test_cat_labels_known).mean() * 100
-                gap = compute_gap(cat_scores, test_cat_labels_known)
-                nmi = clustering_nmi(cat_scores, test_cat_labels_known, n_known_categories)
+                # 🆕 h instead of s for gap/NMI
+                test_hidden_ftm = extract_hidden(test_ds, path, model_tree.n_nodes)
+                gap_hidden = test_hidden_ftm[held_in_mask]
+                gap = compute_gap(gap_hidden, test_cat_labels_known)
+                nmi = clustering_nmi(gap_hidden, test_cat_labels_known, n_known_categories)
                 preds = ftm_only_preds_singlelabel(test_scores[held_in_mask], n_bga, n_midcat, n_known_categories)
             else:
                 gap_emb = test_emb[held_in_mask]

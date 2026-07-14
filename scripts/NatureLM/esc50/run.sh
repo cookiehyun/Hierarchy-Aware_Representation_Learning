@@ -7,12 +7,12 @@
 #SBATCH --gres=gpu:1
 #SBATCH --mem=32G
 #SBATCH --time=08:00:00
-#SBATCH --output=/user/gaad2403/Bachelor-Thesis/logs/total_NatureLM_esc50_hf1%j.log
-#SBATCH --error=/user/gaad2403/Bachelor-Thesis/logs/total_NatureLM_esc50_hf1%j.err
+#SBATCH --output=/user/gaad2403/Bachelor-Thesis/logs/total_NatureLM_esc50_hf1_unseen%j.log
+#SBATCH --error=/user/gaad2403/Bachelor-Thesis/logs/total_NatureLM_esc50_hf1_unseen%j.err
 
 module load hpc-env/13.1 Python/3.11.3-GCCcore-13.1.0
 
 source /fs/dss/home/gaad2403/bachelor_thesis/naturelm-env/bin/activate
 
 cd /user/gaad2403/Bachelor-Thesis
-python scripts/NatureLM/esc50/evaluation.py
+python scripts/NatureLM/esc50/evaluation_unseen.py

@@ -98,6 +98,22 @@ def extract_hierarchical_scores(ds, model_path, n_hierarchy_nodes):
     return np.vstack(out)
 
 
+def extract_hidden(ds, model_path, n_hierarchy_nodes):
+    """🆕 FTM-only's shared backbone representation h -- see naturelm_wp3_full_eval_normal_hf1.py."""
+    model = HierarchicalModel(input_dim=INPUT_DIM, hidden_dim=1024, triplet_dim=128,
+                              n_hierarchy_nodes=n_hierarchy_nodes).to(DEVICE)
+    ckpt = torch.load(model_path, map_location=DEVICE)
+    model.load_state_dict(ckpt['model_state_dict'])
+    model.eval()
+    out = []
+    with torch.no_grad():
+        for i in range(0, len(ds), 512):
+            h = model.encode_hidden(ds.embeddings[i:i + 512].to(DEVICE))
+            out.append(h.cpu().numpy())
+    emb = np.vstack(out)
+    return emb / np.clip(np.linalg.norm(emb, axis=1, keepdims=True), 1e-8, None)
+
+
 def direct_node_accuracy(scores, node_start, node_end, true_labels):
     preds = scores[:, node_start:node_end].argmax(axis=1)
     return (preds == true_labels).mean() * 100
@@ -198,13 +214,22 @@ def main():
     test_hier = test_ds.hier_labels.numpy()
     test_gt = ground_truth_singlelabel(test_hier, n_bga, n_midcat, n_category)
 
+    # 🆕 h for FTM-only's Gap/NMI (s stays in test_emb['FTM-only'] for acc/hF1)
+    test_hidden = {}
+    if 'FTM-only' in test_emb:
+        try:
+            test_hidden['FTM-only'] = extract_hidden(test_ds, MODEL_PATHS['FTM-only'][1], tree.n_nodes)
+        except FileNotFoundError:
+            pass
+
     print("\nComputing gap / probe accuracy / NMI / hF1...")
     results = {}
     for name in train_emb:
         results[name] = {}
         for level, col, col_idx in LEVELS:
             n_classes = LEVEL_INFO[level][1]
-            intra, inter, gap = compute_gap(test_emb[name], meta[col].values)
+            gap_emb = test_hidden['FTM-only'] if name == 'FTM-only' else test_emb[name]  # 🆕
+            intra, inter, gap = compute_gap(gap_emb, meta[col].values)
             train_labels = train_hier[:, col_idx]
             test_labels = test_hier[:, col_idx]
 
@@ -215,7 +240,7 @@ def main():
                 acc, majority_acc = linear_probe_accuracy(
                     train_emb[name], train_labels, test_emb[name], test_labels, n_classes)
 
-            nmi = clustering_nmi(test_emb[name], test_labels, n_classes)
+            nmi = clustering_nmi(gap_emb, test_labels, n_classes)  # 🆕 h instead of s
             results[name][level] = {'gap': gap, 'acc': acc, 'nmi': nmi}
             print(f"  [{name:<12}] {level:<9} | Gap: {gap:.4f} | Acc: {acc:.2f}% | NMI: {nmi:.2f}%")
 
