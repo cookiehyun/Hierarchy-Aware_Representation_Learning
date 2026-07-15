@@ -32,3 +32,14 @@ huggingface/
 
 *.csv
 !data/*.csv
+# Experiment artifacts
+results/**/*.npy
+results/**/*.pt
+results/**/*.pth
+logs/
+*.log
+*.err
+
+# Python cache
+__pycache__/
+*.py[cod]
