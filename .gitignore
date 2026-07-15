@@ -8,17 +8,6 @@ naturelm-env/
 venv/
 .env/
 
-# Data and models
-anuraset/
-*.zip
-*.wav
-*.pt
-*.pth
-*.npy
-*.npz
-*.safetensors
-*.bin
-
 # Logs
 logs/
 *.log
@@ -43,3 +32,6 @@ logs/
 # Python cache
 __pycache__/
 *.py[cod]
+
+*.sh
+*.sh
