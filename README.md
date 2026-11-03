@@ -1,316 +1,96 @@
-# Hierarchy-Aware Representation Learning for Bioacoustic Data
+# Hierarchy-Aware Representation Learning for Bio-acoustic Data
 
-This repository contains the code used to study hierarchy-aware representation learning for bioacoustic and environmental audio classification.
+Code for *Hierarchy-Aware Representation Learning for Bio-acoustic Data* (Ku, Saghir, Gouvêa, Sonntag).
 
-The experiments compare frozen embeddings from **NatureLM-Audio** and **BirdNET** using hierarchical learning objectives originally developed for computer vision.
+Frozen **NatureLM-audio** (4096-d) and **BirdNET** (1024-d) embeddings get a small trainable
+head with one of four hierarchical objectives, and are compared with flat baselines on
 
-## Overview
+- **AnuraSet**: family (5) → genus (12) → species (42), single- and multi-label
+- **ESC-50**: BGA (3) → mid-category (12) → category (50), single-label
 
-Two datasets and hierarchy types are used:
+| method | objective | head | evaluated by |
+|---|---|---|---|
+| `baseline` | none (frozen embedding) | – | linear probe |
+| `hmce` | HiMulConE + species level (Eq. 1–3) | MLP → 128, L2 | linear probe |
+| `ftm` | Focal Tree-Min (Eq. 4–5) | MLP → \|V\| sigmoid | own node scores |
+| `tt` | Tree-Triplet + same-class positives (Eq. 6) | MLP → 128, L2 | linear probe |
+| `ftm_tt` | FTM + β(t)·TT (Eq. 7) | shared trunk, both heads | linear probe |
+| `flat_linear`, `flat_mlp` | cross-entropy on the finest level | linear / same MLP | own logits |
+| `mlbce`, `focal_mlbce` | (focal) BCE on all nodes, no tree constraint | same MLP | own node scores |
 
-- **AnuraSet**: Family → Genus → Species
-- **ESC-50**: BGA → Mid-category → Category
+The flat controls use the same MLP, optimiser and model selection as the hierarchical heads,
+so the only difference is the loss.
 
-Two pretrained embedding models are compared:
-
-- **NatureLM-Audio**: 4096-dimensional embeddings
-- **BirdNET**: 1024-dimensional embeddings
-
-The pretrained embedding models remain frozen. Only lightweight projection or hierarchy-classification heads are trained.
-
-The evaluated methods are:
-
-- Baseline
-- UALB / Hierarchical Multi-Label Contrastive Learning
-- Focal Tree-Min (`FTM-only`)
-- Tree-Triplet (`TT-only`)
-- Combined Focal Tree-Min and Tree-Triplet (`FTM+TT`)
-
-Experiments include single-label, multi-label, unknown-inclusive, and unseen-class settings.
-
-## Repository Structure
+## Layout
 
 ```text
-├── data/
-│   ├── anuraset_taxonomy.csv
-│   ├── anuraset_taxonomy_unknown.csv
-│   ├── esc50_bga_labels.csv
-│   ├── unseen_species_split.json
-│   └── unseen_category_split.json
-├── scripts/
-│   ├── NatureLM/
-│   ├── birdnet/
-│   └── multilabel/
-├── src/
-│   ├── NatureLM/
-│   ├── birdnet/
-│   ├── multilabel/
-│   └── models/
-└── results/
+src/hierbio/
+  paths.py       all filesystem locations (env: HIERBIO_DATA_ROOT, HIERBIO_RESULTS)
+  data.py        load_task(embedding, dataset, label_mode, variant) -> train/test splits
+  hierarchy.py   3-level tree: node order, ancestor matrix, tree distance psi
+  losses.py      HMCE, FTM, Tree-Triplet (single + multi-label)
+  models.py      ProjectionHead, HierarchicalModel, FlatHead
+  train.py       one training loop for every method
+  evaluate.py    Acc / macro-F1 / micro-F1, Gap, NMI, hP/hR/hF1, consistency, unseen AUROC
+scripts/
+  run.py                  train + evaluate one (task, method, seed)  -> metrics.json
+  aggregate.py            mean ± std tables over seeds
+  extract_embeddings.py   NatureLM / BirdNET embedding extraction
+  build_esc50_hierarchy.py  ESC-50 -> BGA labels (data/esc50_bga_labels.csv)
+  plot_tsne.py            before / after t-SNE
+slurm/
+  run.sh, grid.sh         sbatch wrappers (grid = methods x seeds job array)
+  verify_paper.sh         re-evaluates the paper checkpoints with this code
+data/                     taxonomy, ESC-50 hierarchy, unseen-class splits
 ```
 
-Large audio files, embedding arrays, model checkpoints, and logs are not included in this repository.
-
-## Data Preparation
-
-Download AnuraSet and ESC-50 separately.
-
-Expected external data structure:
-
-```text
-/path/to/bioacoustic_data/
-├── anuraset/
-│   └── anuraset/
-│       ├── audio/
-│       └── metadata.csv
-└── ESC-50-master/
-    ├── audio/
-    └── meta/
-```
-
-Before running a script, update the path variables near the top of the corresponding Python file.
-
-Example:
-
-```python
-BASE_DIR = Path("/path/to/bioacoustic_data")
-PROJECT_DIR = Path("/path/to/Bachelor-Thesis")
-```
-
-Repository metadata, taxonomy files, and evaluation splits are stored under `data/`.
-
-## ESC-50 BGA Hierarchy
-
-ESC-50 does not provide the soundscape hierarchy used in this study.
-
-The original categories are reorganized as:
-
-```text
-BGA → Mid-category → Category
-```
-
-The highest-level BGA categories are:
-
-- Biophony
-- Geophony
-- Anthrophony
-
-The hierarchy file is stored at:
-
-```text
-data/esc50_bga_labels.csv
-```
-
-To regenerate it, update the paths in the script and run:
+## Running
 
 ```bash
-python scripts/NatureLM/esc50/baseline/build_bga_labels.py
+# one run
+python scripts/run.py --embedding naturelm --dataset anuraset --label-mode multi --method ftm --seed 0
+
+# all methods x 5 seeds on the cluster (9 x 5 = 45 array tasks)
+sbatch --array=0-44 slurm/grid.sh --embedding naturelm --dataset anuraset --label-mode single
+
+# a subset
+METHODS="baseline ftm flat_mlp" SEEDS="0 1 2" sbatch --array=0-8 slurm/grid.sh --embedding birdnet --dataset esc50
+
+# tables
+python scripts/aggregate.py --filter anuraset/multi
 ```
 
-The resulting CSV is used by both NatureLM and BirdNET ESC-50 scripts.
+Results go to `results/runs/<protocol>/<embedding>/<dataset>/<label_mode>[_variant]/<method>/seed<k>/`.
 
-## Embedding Extraction
+Options:
 
-### NatureLM × AnuraSet
+- `--variant unknown` — AnuraSet with the "no call" recordings kept (single-label: an extra
+  `unknown` class at every level; multi-label: all-zero rows).
+- `--variant unseen` — single-label open-set test: the classes in `data/unseen_*_split.json`
+  are removed from training; reports AUROC / recall / false-reject rate for near- and far-OOD
+  classes plus the usual metrics on the held-in test classes.
+- `--protocol paper` — the exact evaluation used for the paper tables (validation split
+  seed 42, probes on the full training set, multi-label threshold 0.5, Gap pooled over all
+  pairs). The default `v2` ties all randomness to `--seed`, fits probes on the training part
+  of the split, tunes multi-label thresholds per class on the validation part, and averages
+  Gap per class as in the paper's formula.
+- `--checkpoint path/to/best_model.pt` — evaluate an existing checkpoint (old checkpoints load as is).
+- `--save-model` — keep the trained head.
+
+## Embeddings
 
 ```bash
-python scripts/NatureLM/anuraset/baseline/extract_embeddings.py
+python scripts/build_esc50_hierarchy.py                               # once
+python scripts/extract_embeddings.py --model naturelm --dataset anuraset   # naturelm-env
+python scripts/extract_embeddings.py --model birdnet --dataset esc50       # birdnet-env
 ```
 
-Expected output:
-
-```text
-embeddings/
-├── embeddings.npy
-├── species_labels.npy
-└── embeddings_metadata.csv
-```
-
-### NatureLM × ESC-50
-
-```bash
-python scripts/NatureLM/esc50/baseline/extract_embeddings.py
-```
-
-Expected output:
-
-```text
-embeddings_esc50/
-├── embeddings.npy
-└── embeddings_metadata.csv
-```
-
-### BirdNET × AnuraSet
-
-```bash
-python scripts/birdnet/anuraset/baseline/extract_embeddings_birdnet.py
-```
-
-Expected output:
-
-```text
-embeddings_anuraset_birdnet/
-├── embeddings.npy
-├── species_labels.npy
-├── embeddings_metadata.csv
-└── summary.txt
-```
-
-### BirdNET × ESC-50
-
-```bash
-python scripts/birdnet/esc50/baseline/extract_embeddings_birdnet.py
-```
-
-Expected output:
-
-```text
-embeddings_esc50_birdnet/
-├── embeddings.npy
-├── embeddings_metadata.csv
-└── summary.txt
-```
-
-NatureLM audio is converted to mono, resampled to 16 kHz, and pooled into one embedding per recording. BirdNET embeddings are averaged across segments.
-
-## Training
-
-Training scripts are organized by embedding model, dataset, and method.
-
-Examples:
-
-### UALB
-
-```bash
-PYTHONPATH=src python scripts/NatureLM/anuraset/ualb/train_ualb_single.py
-```
-
-### FTM + Tree-Triplet
-
-```bash
-PYTHONPATH=src python scripts/NatureLM/anuraset/tree_triplet/train_triplet_single.py
-```
-
-### FTM-only
-
-```bash
-PYTHONPATH=src python scripts/NatureLM/anuraset/tree_triplet/train_triplet_single_ftm_only.py
-```
-
-### TT-only
-
-```bash
-PYTHONPATH=src python scripts/NatureLM/anuraset/tree_triplet/train_triplet_single_tt_only.py
-```
-
-Equivalent scripts are available for BirdNET, ESC-50, multi-label, unknown-inclusive, and unseen-class experiments.
-
-## Evaluation
-
-### NatureLM × AnuraSet Single-Label
-
-```bash
-PYTHONPATH=src python scripts/NatureLM/anuraset/evaluation.py
-```
-
-### BirdNET × AnuraSet Single-Label
-
-```bash
-PYTHONPATH=src python scripts/birdnet/anuraset/evaluation.py
-```
-
-### NatureLM × AnuraSet Multi-Label
-
-```bash
-PYTHONPATH=src python scripts/multilabel/NatureLM/anuraset/evaluation.py
-```
-
-### NatureLM × AnuraSet Unknown-Inclusive Multi-Label
-
-```bash
-PYTHONPATH=src python scripts/multilabel/NatureLM/anuraset/evaluation_unknown.py
-```
-
-### NatureLM × AnuraSet Unseen-Species
-
-```bash
-PYTHONPATH=src python scripts/NatureLM/anuraset/evaluation_unseen.py
-```
-
-Equivalent BirdNET and ESC-50 evaluation scripts are available in the corresponding directories.
-
-Evaluation metrics include:
-
-- Accuracy
-- Macro-F1 and Micro-F1
-- Hierarchical Precision, Recall, and F1
-- Normalized Mutual Information
-- Embedding similarity Gap
-- AUROC for unseen-class detection
-
-## Example Results
-
-Representative results from the **NatureLM × AnuraSet multi-label** experiment are shown below.
-
-| Method | Species Macro-F1 | Species Micro-F1 | hF1 |
-|---|---:|---:|---:|
-| Baseline | 36.73 | 56.36 | 62.07 |
-| UALB | 42.23 | 64.77 | 73.96 |
-| **FTM-only** | **54.03** | **83.12** | **86.72** |
-| TT-only | 34.70 | 52.44 | 60.26 |
-| FTM+TT | 35.34 | 53.91 | 60.16 |
-
-FTM-only provides the strongest fine-grained and hierarchical classification performance in this setting.
-
-Across experiments, hierarchy-aware learning often improves fine-grained classification, but no single method performs best in every setting. Larger embedding-space separation also does not always translate into better downstream classification.
+Expected raw data under `HIERBIO_DATA_ROOT` (default `/user/gaad2403/bachelor_thesis`):
+`anuraset/anuraset/{audio,metadata.csv}` and `ESC-50-master/{audio,meta}`.
+NatureLM is loaded with `NatureLM.from_pretrained("EarthSpeciesProject/NatureLM-audio")`,
+BirdNET with `birdnet.load("acoustic", "2.4", "tf")`.
 
 ## Requirements
 
-Main dependencies include:
-
-```text
-torch
-torchaudio
-numpy
-pandas
-scikit-learn
-matplotlib
-tqdm
-tensorflow
-birdnet
-```
-
-NatureLM-Audio is loaded with:
-
-```python
-NatureLM.from_pretrained("EarthSpeciesProject/NatureLM-audio")
-```
-
-BirdNET experiments use:
-
-```python
-birdnet.load("acoustic", "2.4", "tf")
-```
-
-## Notes
-
-Several scripts were originally developed on an HPC cluster and may contain environment-specific paths.
-
-Before execution, check:
-
-- dataset paths,
-- embedding paths,
-- checkpoint paths,
-- result directories,
-- and Python module paths.
-
-SLURM scripts are not required when running the Python files directly.
-
-## Publication Status
-
-The manuscript is currently being finalized.
-
-**Working title:**  
-*Hierarchy-Aware Representation Learning for Bioacoustic Data*
-
-Citation and license information will be added after publication.
+`torch`, `numpy`, `pandas`, `scikit-learn`, `matplotlib`; `torchaudio` + NatureLM-audio for
+NatureLM extraction; `birdnet` + `tensorflow` for BirdNET extraction.

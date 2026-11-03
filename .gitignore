@@ -1,37 +1,32 @@
 # Python
 __pycache__/
-*.pyc
+*.py[cod]
 *.egg-info/
 
-# Virtual environments
+# Environments / caches
 naturelm-env/
 venv/
 .env/
+.cache/
+huggingface/
 
 # Logs
 logs/
 *.log
 *.err
 slurm-*.out
-.sh
 
-# Cache
-.cache/
-huggingface/
-
+# Data and experiment artifacts (only small metadata in data/ is tracked)
 *.csv
 !data/*.csv
-# Experiment artifacts
 results/**/*.npy
 results/**/*.pt
 results/**/*.pth
-logs/
-*.log
-*.err
+results/runs/
 
-# Python cache
-__pycache__/
-*.py[cod]
+# Local reference material
+advisor_material/
+PAM Datasets*/
 
-*.sh
-*.sh
+# Untracked pre-refactor sbatch scripts kept for reference
+archive/
