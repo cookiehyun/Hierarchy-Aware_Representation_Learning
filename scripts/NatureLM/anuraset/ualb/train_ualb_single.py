@@ -20,15 +20,15 @@ from torch.utils.data import DataLoader, random_split
 import numpy as np
 from pathlib import Path
 
-#from NatureLM.anuraset.anuraset_dataset import AnuraSetEmbeddingDataset
-from NatureLM.anuraset.anuraset_dataset_unknown import AnuraSetEmbeddingDataset
+from NatureLM.anuraset.anuraset_dataset import AnuraSetEmbeddingDataset
+#from NatureLM.anuraset.anuraset_dataset_unknown import AnuraSetEmbeddingDataset
 from models.projection_head import ProjectionHead
 from hmlc_loss_l0 import HMLCWithSpeciesLevel as HMLC
 
 # ── Paths ──────────────────────────────────────────────────────────────────
 EMBED_PATH = '/user/gaad2403/bachelor_thesis/embeddings/embeddings.npy'
 META_PATH  = '/user/gaad2403/bachelor_thesis/embeddings/embeddings_metadata.csv'
-SAVE_DIR = Path('/user/gaad2403/Bachelor-Thesis/results/NatureLM/anuraset/wp2_ualb_singlelabel_l0_unknown')
+SAVE_DIR = Path('/user/gaad2403/Bachelor-Thesis/results/NatureLM/anuraset/wp2_ualb_singlelabel_l0')
 
 SAVE_DIR.mkdir(parents=True, exist_ok=True)
 

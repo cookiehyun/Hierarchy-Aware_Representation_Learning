@@ -8,7 +8,6 @@ from sklearn.preprocessing import LabelEncoder
 from pathlib import Path
 import warnings
 warnings.filterwarnings("ignore")
-
 # ─────────────────────────────────────────────
 # 경로 설정
 # ─────────────────────────────────────────────
@@ -200,8 +199,8 @@ def plot_tsne(emb_2d, labels, color_map, title, save_path):
         color = color_map.get(label, "#9E9E9E")
         ax.scatter(emb_2d[idx, 0], emb_2d[idx, 1],
                    c=color, label=label, alpha=0.5, s=8, linewidths=0)
-    ax.legend(markerscale=3, fontsize=9, bbox_to_anchor=(1.01, 1), loc="upper left")
-    ax.set_title(title, fontsize=13)
+    ax.legend(markerscale=3, fontsize=15, bbox_to_anchor=(1.01, 1), loc="upper left")
+    ax.set_title(title, fontsize=20)
     ax.set_xlabel("t-SNE 1")
     ax.set_ylabel("t-SNE 2")
     plt.tight_layout()

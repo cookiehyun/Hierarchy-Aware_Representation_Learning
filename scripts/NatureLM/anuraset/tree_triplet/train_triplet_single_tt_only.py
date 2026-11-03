@@ -15,8 +15,8 @@ import numpy as np
 from pathlib import Path
 from torch.utils.data import DataLoader, random_split
 
-#from NatureLM.anuraset.anuraset_dataset import AnuraSetEmbeddingDataset
-from NatureLM.anuraset.anuraset_dataset_unknown import AnuraSetEmbeddingDataset
+from NatureLM.anuraset.anuraset_dataset import AnuraSetEmbeddingDataset
+#from NatureLM.anuraset.anuraset_dataset_unknown import AnuraSetEmbeddingDataset
 from NatureLM.anuraset.hierarchy_utils import AnuraSetHierarchy
 from NatureLM.anuraset.hierarchy_tree import HierarchyTree
 from models.hierarchical_model import HierarchicalModel
@@ -26,7 +26,7 @@ from tree_triplet_loss_self import TreeTripletLoss
 EMBED_PATH    = '/user/gaad2403/bachelor_thesis/embeddings/embeddings.npy'
 META_PATH     = '/user/gaad2403/bachelor_thesis/embeddings/embeddings_metadata.csv'
 TAXONOMY_PATH = '/user/gaad2403/Bachelor-Thesis/data/anuraset_taxonomy.csv'
-SAVE_DIR      = Path('/user/gaad2403/Bachelor-Thesis/results/NatureLM/anuraset/wp2_tt_only_singlelabel_self_unknown')  # ← 별도 폴더
+SAVE_DIR      = Path('/user/gaad2403/Bachelor-Thesis/results/NatureLM/anuraset/wp2_tt_only_singlelabel_self')  # ← 별도 폴더
 SAVE_DIR.mkdir(parents=True, exist_ok=True)
 
 # ── Hyperparameters (다른 ablation들과 동일 — loss 구성만 변수) ────────────

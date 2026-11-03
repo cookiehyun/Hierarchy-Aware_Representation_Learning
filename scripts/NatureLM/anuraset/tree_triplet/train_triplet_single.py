@@ -21,8 +21,8 @@ import numpy as np
 from pathlib import Path
 from torch.utils.data import DataLoader, random_split
 
-#from NatureLM.anuraset.anuraset_dataset import AnuraSetEmbeddingDataset
-from NatureLM.anuraset.anuraset_dataset_unknown import AnuraSetEmbeddingDataset
+from NatureLM.anuraset.anuraset_dataset import AnuraSetEmbeddingDataset
+#from NatureLM.anuraset.anuraset_dataset_unknown import AnuraSetEmbeddingDataset
 from NatureLM.anuraset.hierarchy_utils import AnuraSetHierarchy          # ψ(tree distance) for Tree-Triplet
 from NatureLM.anuraset.hierarchy_tree import HierarchyTree                # A_v/C_v for Focal Tree-Min
 from models.hierarchical_model import HierarchicalModel
@@ -33,7 +33,7 @@ from focal_tree_min_loss import FocalTreeMinLoss
 EMBED_PATH    = '/user/gaad2403/bachelor_thesis/embeddings/embeddings.npy'
 META_PATH     = '/user/gaad2403/bachelor_thesis/embeddings/embeddings_metadata.csv'
 TAXONOMY_PATH = '/user/gaad2403/Bachelor-Thesis/data/anuraset_taxonomy.csv'
-SAVE_DIR      = Path('/user/gaad2403/Bachelor-Thesis/results/NatureLM/anuraset/wp2_hssn_singlelabel_self_unknown')
+SAVE_DIR      = Path('/user/gaad2403/Bachelor-Thesis/results/NatureLM/anuraset/wp2_hssn_singlelabel_self')
 SAVE_DIR.mkdir(parents=True, exist_ok=True)
 
 # ── Hyperparameters ────────────────────────────────────────────────────────

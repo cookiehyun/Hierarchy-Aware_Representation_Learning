@@ -123,8 +123,8 @@ class TreeTripletLoss(nn.Module):
             
             # Compute cosine distances
             # distance = 1 - cosine_similarity
-            dist_to_pos = 1.0 - torch.sum(feats_anchor * feats_pos, dim=1)  # [min_size]
-            dist_to_neg = 1.0 - torch.sum(feats_anchor * feats_neg, dim=1)  # [min_size]
+            dist_to_pos = (1.0 - torch.sum(feats_anchor * feats_pos, dim=1))  # [min_size]
+            dist_to_neg = (1.0 - torch.sum(feats_anchor * feats_neg, dim=1))  # [min_size]
             
             # Compute margin
             if self.use_hierarchy_margin and tree_distances is not None:
