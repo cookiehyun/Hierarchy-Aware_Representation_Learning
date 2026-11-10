@@ -5,7 +5,8 @@ Examples:
   python scripts/run.py --embedding naturelm --dataset anuraset --label-mode single --method ftm --seed 0
   python scripts/run.py --embedding birdnet --dataset esc50 --method hmce --variant unseen --seed 1
   python scripts/run.py ... --method baseline                       # frozen embedding, no training
-  python scripts/run.py ... --method ftm --protocol paper --checkpoint results/NatureLM/anuraset/wp2_ftm_only_singlelabel/best_model.pt
+  python scripts/run.py ... --method ftm --protocol paper --seed 42  # setting of the paper tables
+  python scripts/run.py ... --method ftm --checkpoint path/to/best_model.pt   # evaluate a saved head
 """
 
 import argparse

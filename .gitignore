@@ -30,3 +30,6 @@ PAM Datasets*/
 
 # Untracked pre-refactor sbatch scripts kept for reference
 archive/
+
+# Raw audio and embeddings (see README, "Data")
+datasets/

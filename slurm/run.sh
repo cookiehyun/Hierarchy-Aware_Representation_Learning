@@ -1,6 +1,5 @@
 #!/bin/bash
 #SBATCH --job-name=hierbio
-#SBATCH --partition=mpcg.p
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4

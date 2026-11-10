@@ -1,6 +1,6 @@
 """Filesystem locations. Override with environment variables instead of editing code:
 
-    HIERBIO_DATA_ROOT   raw audio + extracted embeddings (default: /user/gaad2403/bachelor_thesis)
+    HIERBIO_DATA_ROOT   raw audio + extracted embeddings (default: <repo>/datasets)
     HIERBIO_RESULTS     where runs are written       (default: <repo>/results)
 """
 
@@ -9,7 +9,7 @@ from pathlib import Path
 
 PROJECT_DIR = Path(__file__).resolve().parents[2]
 DATA_DIR = PROJECT_DIR / 'data'
-DATA_ROOT = Path(os.environ.get('HIERBIO_DATA_ROOT', '/user/gaad2403/bachelor_thesis'))
+DATA_ROOT = Path(os.environ.get('HIERBIO_DATA_ROOT', PROJECT_DIR / 'datasets'))
 RESULTS_DIR = Path(os.environ.get('HIERBIO_RESULTS', PROJECT_DIR / 'results'))
 
 ANURASET_TAXONOMY = DATA_DIR / 'anuraset_taxonomy.csv'

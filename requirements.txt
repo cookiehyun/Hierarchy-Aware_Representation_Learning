@@ -1,0 +1,7 @@
+# training and evaluation (tested versions)
+torch>=2.2
+numpy>=1.26
+pandas>=2.0
+scikit-learn>=1.3
+matplotlib>=3.8
+# embedding extraction only (see README): torchaudio + NatureLM-audio, or birdnet + tensorflow

@@ -1,0 +1,37 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite the paper below."
+title: "Hierarchy-Aware Representation Learning for Bio-acoustic Data"
+repository-code: "https://github.com/cookiehyun/Hierarchy-Aware_Representation_Learning"
+license: MIT
+authors:
+  - family-names: Ku
+    given-names: Keyhyun
+  - family-names: Saghir
+    given-names: Rida
+  - family-names: Gouvêa
+    given-names: Thiago S.
+  - family-names: Sonntag
+    given-names: Daniel
+preferred-citation:
+  type: conference-paper
+  title: "Hierarchy-Aware Representation Learning for Bio-acoustic Data"
+  authors:
+    - family-names: Ku
+      given-names: Keyhyun
+    - family-names: Saghir
+      given-names: Rida
+    - family-names: Gouvêa
+      given-names: Thiago S.
+    - family-names: Sonntag
+      given-names: Daniel
+  collection-title: "Proceedings of the 3rd Workshop on Computer Vision for Ecology (CV4E 2026), ECCV 2026"
+  publisher:
+    name: Springer
+  conference:
+    name: "Workshop on Computer Vision for Ecology (CV4E 2026) at ECCV 2026"
+    city: "Malmö"
+    country: SE
+    date-start: 2026-09-08
+    date-end: 2026-09-08
+  url: "https://openreview.net/forum?id=BKu3bEhZzA"
+  year: 2026
