@@ -50,7 +50,7 @@ classifiers ignore this structure, and they discard every sample that has no lab
 We keep the backbone frozen and change only the **training objective** of a lightweight head:
 
 <p align="center">
-  <img src="assets/overview.png" alt="Pipeline: audio clip → frozen encoder (NatureLM-audio / BirdNET) → projection head (HMCE) or hierarchy-triplet head (HSSN) → evaluation" width="90%">
+  <img src="assets/overview.svg" alt="Pipeline: audio clip → frozen encoder (NatureLM-audio / BirdNET) → projection head (HMCE) or hierarchy-triplet head (HSSN) → evaluation" width="90%">
 </p>
 
 | | AnuraSet | ESC-50 |

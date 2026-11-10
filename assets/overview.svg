@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 300" width="1100" height="300" font-family="Helvetica, Arial, sans-serif">
+  <rect width="1100" height="300" fill="#ffffff"/>
+  <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker></defs>
+  <g stroke="#4b5563" stroke-width="2" fill="none">
+    <line x1="260" y1="150" x2="326" y2="150" marker-end="url(#a)"/>
+    <path d="M480,150 C530,150 530,85 576,85" marker-end="url(#a)"/>
+    <path d="M480,150 C530,150 530,215 576,215" marker-end="url(#a)"/>
+    <path d="M800,85 C850,85 850,150 896,150" marker-end="url(#a)"/>
+    <path d="M800,215 C850,215 850,150 896,150" marker-end="url(#a)"/>
+  </g>
+  <rect x="40" y="65" width="220" height="170" rx="10" fill="#f9fafb" stroke="#1f2937" stroke-width="2"/>
+  <rect x="78.0" y="111.0" width="3.6" height="14" rx="1.8" fill="#1f2937"/><rect x="85.5" y="105.0" width="3.6" height="26" rx="1.8" fill="#1f2937"/><rect x="93.0" y="98.0" width="3.6" height="40" rx="1.8" fill="#1f2937"/><rect x="100.5" y="107.0" width="3.6" height="22" rx="1.8" fill="#1f2937"/><rect x="108.0" y="92.0" width="3.6" height="52" rx="1.8" fill="#1f2937"/><rect x="115.5" y="101.0" width="3.6" height="34" rx="1.8" fill="#1f2937"/><rect x="123.0" y="88.0" width="3.6" height="60" rx="1.8" fill="#1f2937"/><rect x="130.5" y="103.0" width="3.6" height="30" rx="1.8" fill="#1f2937"/><rect x="138.0" y="109.0" width="3.6" height="18" rx="1.8" fill="#1f2937"/><rect x="145.5" y="96.0" width="3.6" height="44" rx="1.8" fill="#1f2937"/><rect x="153.0" y="104.0" width="3.6" height="28" rx="1.8" fill="#1f2937"/><rect x="160.5" y="112.0" width="3.6" height="12" rx="1.8" fill="#1f2937"/><rect x="168.0" y="106.0" width="3.6" height="24" rx="1.8" fill="#1f2937"/><rect x="175.5" y="94.0" width="3.6" height="48" rx="1.8" fill="#1f2937"/><rect x="183.0" y="87.0" width="3.6" height="62" rx="1.8" fill="#1f2937"/><rect x="190.5" y="99.0" width="3.6" height="38" rx="1.8" fill="#1f2937"/><rect x="198.0" y="91.0" width="3.6" height="54" rx="1.8" fill="#1f2937"/><rect x="205.5" y="105.0" width="3.6" height="26" rx="1.8" fill="#1f2937"/><rect x="213.0" y="98.0" width="3.6" height="40" rx="1.8" fill="#1f2937"/><rect x="220.5" y="108.0" width="3.6" height="20" rx="1.8" fill="#1f2937"/><rect x="228.0" y="103.0" width="3.6" height="30" rx="1.8" fill="#1f2937"/><rect x="235.5" y="110.0" width="3.6" height="16" rx="1.8" fill="#1f2937"/>
+  <text x="150" y="200" text-anchor="middle" font-size="22" fill="#111827">audio clip</text>
+  <polygon points="330,55 480,98 480,202 330,245" fill="#e5e7eb" stroke="#1f2937" stroke-width="2"/>
+  <text x="402" y="144" text-anchor="middle" font-size="20" fill="#111827">Frozen</text>
+  <text x="402" y="168" text-anchor="middle" font-size="20" fill="#111827">encoder</text>
+  <text x="405" y="272" text-anchor="middle" font-size="14" fill="#4b5563">NatureLM-audio / BirdNET</text>
+  <text x="690" y="30" text-anchor="middle" font-size="14" font-weight="bold" fill="#b45309">HMCE</text>
+  <rect x="580" y="40" width="220" height="90" rx="10" fill="#fff7ed" stroke="#d97706" stroke-width="2"/>
+  <text x="690" y="92" text-anchor="middle" font-size="20" fill="#111827">Projection Head</text>
+  <text x="690" y="160" text-anchor="middle" font-size="14" font-weight="bold" fill="#b45309">HSSN: FTM · TT · FTM+TT</text>
+  <rect x="580" y="170" width="220" height="90" rx="10" fill="#fff7ed" stroke="#d97706" stroke-width="2"/>
+  <text x="690" y="209" text-anchor="middle" font-size="20" fill="#111827">Hierarchy · Triplet</text>
+  <text x="690" y="234" text-anchor="middle" font-size="20" fill="#111827">Head</text>
+  <rect x="900" y="105" width="170" height="90" rx="10" fill="#f9fafb" stroke="#1f2937" stroke-width="2"/>
+  <text x="985" y="157" text-anchor="middle" font-size="22" fill="#111827">evaluation</text>
+  <text x="985" y="222" text-anchor="middle" font-size="13" fill="#4b5563">Gap · linear probe</text>
+  <text x="985" y="240" text-anchor="middle" font-size="13" fill="#4b5563">hP / hR / hF1 · NMI</text>
+  <rect x="580" y="282" width="12" height="12" rx="2" fill="#fff7ed" stroke="#d97706"/><text x="598" y="293" font-size="13" fill="#4b5563">trainable</text>
+  <rect x="680" y="282" width="12" height="12" rx="2" fill="#e5e7eb" stroke="#1f2937"/><text x="698" y="293" font-size="13" fill="#4b5563">frozen</text>
+</svg>
